@@ -16,17 +16,3 @@ describe('normalizeAmount', () => {
     expect(normalizeAmount(12.4)).toBe(12.4);
   });
 });
-
-describe('pick', () => {
-  test('test that picks the provided elements', async () => {
-    const object = { name: 'name', email: 'email', ram: 'ram' };
-    const picked = pick(object, ['name', 'email']);
-    expect(picked).toEqual({ name: 'name', email: 'email' });
-  });
-
-  test('test other elements not specified are not picked', async () => {
-    const object = { name: 'name', email: 'email', ram: 'ram' };
-    const picked = pick(object, ['name', 'email']);
-    expect(Object.keys(picked).length).toBe(2);
-  });
-});

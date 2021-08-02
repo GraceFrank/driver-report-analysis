@@ -4,12 +4,9 @@ const normalizeAmount = (formattedNumString) => {
   return Number(numString);
 };
 
-const pick = (object, properties) => {
-  const pickedProps = {};
-  for (const property of properties) {
-    pickedProps[property] = object[property];
-  }
-  return pickedProps;
+const pick = (object) => {
+  const { name, email, phone, noOfTrips, totalAmountEarned } = object;
+  return { name, email, phone, noOfTrips, totalAmountEarned };
 };
 
 roundNumber = (num) => Math.round(num * 100) / 100;

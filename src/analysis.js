@@ -18,9 +18,13 @@ async function analysis() {
       nonCashBilledTotal: 0,
       noOfDriversWithMoreThanOneVehicle: 2,
     };
-    const drivers = {};
+    let highestEarningDriver = { totalAmountEarned: 0 };
+    let mostTripsByDriver = { noOfTrips: 0 };
+    let numberOfMultipleCarDrivers = 0;
+    const drivers = new Map();
 
-    for (const trip of trips) {
+    for (let i = 0; i < trips.length; i++) {
+      const trip = trips[i];
       if (trip.isCash) {
         analysis.noOfCashTrips += 1;
         analysis.cashBilledTotal += Number(trip.billedAmount);
@@ -34,35 +38,29 @@ async function analysis() {
       const { driverID } = trip;
 
       //Fetch Driver if non existent
-      if (!drivers[driverID]) {
+      if (!drivers.has(driverID)) {
         try {
           const driver = await getDriver(driverID);
-          drivers[driverID] = {
+          drivers.set(driverID, {
             ...driver,
             totalAmountEarned: 0,
-            cars: [],
             noOfTrips: 0,
-          };
+          });
+          //driver with vehicles more than 2
+          if (driver.vehicleID.length > 2) {
+            numberOfMultipleCarDrivers += 1;
+          }
         } catch (err) {
           continue;
         }
       }
 
       //update driver details
-      const driver = drivers[driverID];
+      const driver = drivers.get(driverID);
       driver.totalAmountEarned += roundNumber(Number(trip.billedAmount));
       driver.noOfTrips += 1;
-    }
 
-    let highestEarningDriver = { totalAmountEarned: 0 };
-    let mostTripsByDriver = { noOfTrips: 0 };
-    let numberOfMultipleCarDrivers = 0;
-    //find driver driver with highest number of cars
-    for (const driverID in drivers) {
-      const driver = drivers[driverID];
-      if (driver.vehicleID.length > 2) {
-        numberOfMultipleCarDrivers += 1;
-      }
+      //highest earning driver
       if (
         Number(driver.totalAmountEarned) >
         highestEarningDriver.totalAmountEarned
@@ -70,6 +68,7 @@ async function analysis() {
         highestEarningDriver = driver;
       }
 
+      //Most trip driver
       if (driver.noOfTrips > mostTripsByDriver.noOfTrips) {
         mostTripsByDriver = driver;
       }
@@ -80,20 +79,8 @@ async function analysis() {
 
     return {
       ...analysis,
-      highestEarningDriver: pick(highestEarningDriver, [
-        'name',
-        'email',
-        'phone',
-        'noOfTrips',
-        'totalAmountEarned',
-      ]),
-      mostTripsByDriver: pick(mostTripsByDriver, [
-        'name',
-        'email',
-        'phone',
-        'noOfTrips',
-        'totalAmountEarned',
-      ]),
+      highestEarningDriver: pick(highestEarningDriver),
+      mostTripsByDriver: pick(mostTripsByDriver),
     };
   } catch (err) {
     console.log(err);

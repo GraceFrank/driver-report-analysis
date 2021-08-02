@@ -11,26 +11,26 @@ async function driverReport() {
     //get trips
     const trips = await getTrips();
     //loop trips
-    const drivers = {};
+    const drivers = new Map();
+
     for (const trip of trips) {
       const { driverID } = trip;
 
       const tripDetails = {
         user: trip.user.name,
-        id: driverID,
         created: trip.created,
         pickup: trip.pickup.address,
         destination: trip.destination.address,
         billed: trip.billedAmount,
         isCash: trip.isCash,
       };
-      if (!drivers[driverID]) {
+      if (!drivers.has(driverID)) {
         try {
           const driver = await getDriver(driverID);
           const { name, phone, vehicleID } = driver;
           const vehicles = await getVehicles(vehicleID);
-          drivers[driverID] = {
-            fullName: name,
+          drivers.set(driverID, {
+            name,
             id: driverID,
             phone,
             noOfTrips: 0,
@@ -42,12 +42,12 @@ async function driverReport() {
             totalCashAmount: 0,
             totalNonCashAmount: 0,
             trips: [],
-          };
+          });
         } catch (err) {
           continue;
         }
       }
-      const driver = drivers[driverID];
+      const driver = drivers.get(driverID);
       driver.trips.push(tripDetails);
       if (trip.isCash) {
         driver.noOfCashTrips += 1;
@@ -64,24 +64,26 @@ async function driverReport() {
         driver.totalAmountEarned + Number(trip.billedAmount),
       );
     }
-    return Object.values(drivers);
+    return [...drivers.values()];
   } catch (err) {
     console.log(err);
   }
 }
 
 async function getVehicles(vehicleIDs) {
-  return await Promise.all(
-    vehicleIDs.map(async (vehicleId) => {
-      return getVehicle(vehicleId)
-        .then((vehicle) => {
-          return { manufacturer: vehicle.manufacturer, plate: vehicle.plate };
-        })
-        .catch((err) => console.log(err));
-    }),
-  );
+  const vehicles = [];
+
+  const vehiclesPromise = vehicleIDs.map(getVehicle);
+
+  for await (const res of vehiclesPromise) {
+    vehicles.push({
+      manufacturer: res.manufacturer,
+      plate: res.plate,
+    });
+  }
+  return vehicles;
 }
 
-// driverReport().then((data) => console.log(data));
-
 module.exports = driverReport;
+
+driverReport().then(console.log);
