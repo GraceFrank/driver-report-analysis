@@ -30,7 +30,7 @@ async function driverReport() {
           const { name, phone, vehicleID } = driver;
           const vehicles = await getVehicles(vehicleID);
           drivers[driverID] = {
-            name,
+            fullName: name,
             id: driverID,
             phone,
             noOfTrips: 0,
@@ -64,7 +64,6 @@ async function driverReport() {
         driver.totalAmountEarned + Number(trip.billedAmount),
       );
     }
-
     return Object.values(drivers);
   } catch (err) {
     console.log(err);
@@ -74,17 +73,15 @@ async function driverReport() {
 async function getVehicles(vehicleIDs) {
   return await Promise.all(
     vehicleIDs.map(async (vehicleId) => {
-      try {
-        const vehicle = await getVehicle(vehicleId);
-        if (vehicle)
+      return getVehicle(vehicleId)
+        .then((vehicle) => {
           return { manufacturer: vehicle.manufacturer, plate: vehicle.plate };
-      } catch (err) {
-        console.log(err);
-      }
+        })
+        .catch((err) => console.log(err));
     }),
   );
 }
 
-module.exports = driverReport;
-
 // driverReport().then((data) => console.log(data));
+
+module.exports = driverReport;

@@ -1,10 +1,5 @@
 const { getTrips, getDriver } = require('api');
-const {
-  normalizeAmount: Number,
-  pick,
-  round,
-  roundNumber,
-} = require('./utils');
+const { normalizeAmount: Number, pick, roundNumber } = require('./utils');
 
 /**
  * This function should return the trip data analysis
@@ -106,5 +101,3 @@ async function analysis() {
 }
 
 module.exports = analysis;
-
-analysis().then((data) => console.log(data));
