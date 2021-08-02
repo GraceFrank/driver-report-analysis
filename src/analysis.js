@@ -1,5 +1,10 @@
 const { getTrips, getDriver } = require('api');
-const { convertStringToNumber: Number, pick } = require('./util');
+const {
+  normalizeAmount: Number,
+  pick,
+  round,
+  roundNumber,
+} = require('./utils');
 
 /**
  * This function should return the trip data analysis
@@ -50,7 +55,7 @@ async function analysis() {
 
       //update driver details
       const driver = drivers[driverID];
-      driver.totalAmountEarned += Number(trip.billedAmount);
+      driver.totalAmountEarned += roundNumber(Number(trip.billedAmount));
       driver.noOfTrips += 1;
     }
 
@@ -74,6 +79,9 @@ async function analysis() {
         mostTripsByDriver = driver;
       }
     }
+
+    analysis.billedTotal = roundNumber(analysis.billedTotal);
+    analysis.nonCashBilledTotal = roundNumber(analysis.nonCashBilledTotal);
 
     return {
       ...analysis,
@@ -99,4 +107,4 @@ async function analysis() {
 
 module.exports = analysis;
 
-analysis();
+analysis().then((data) => console.log(data));
